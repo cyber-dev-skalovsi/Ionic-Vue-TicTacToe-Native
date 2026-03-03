@@ -1,0 +1,7 @@
+{
+  "name": "meinTicTacToe",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
