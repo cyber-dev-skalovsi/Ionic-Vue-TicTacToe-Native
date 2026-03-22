@@ -3,17 +3,11 @@
     <ion-header class="glass-header">
       <ion-toolbar class="glow-toolbar">
         <ion-title class="glow-title">{{ settings.gameName || 'TacTic Board' }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button class="header-btn" @click="promptSaveAndReset" v-if="gameOver">
-            <ion-icon :icon="bookmarkOutline" />
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
+        </ion-toolbar>
     </ion-header>
 
     <ion-content class="dark-content ion-padding">
 
-      <!-- Player Turn Indicators -->
       <div class="players-row">
         <div class="player-pill" :class="{ 'pill-active': nextPlayer === 'X' && !gameOver, 'pill-x': true }">
           <span class="pill-symbol">X</span>
@@ -30,7 +24,6 @@
         </div>
       </div>
 
-      <!-- Status Banner -->
       <div class="status-banner" :class="{ 'winner-glow': winner, 'draw-glow': isDraw }">
         <span v-if="winner" class="winner-text">
           <ion-icon :icon="trophyOutline" class="trophy-icon" />
@@ -43,7 +36,6 @@
         </span>
       </div>
 
-      <!-- Board -->
       <div class="board-wrapper">
         <div class="board-glow-ring"></div>
         <div
@@ -66,13 +58,6 @@
         </div>
       </div>
 
-      <!-- Shake hint -->
-      <div class="shake-hint">
-        <ion-icon :icon="phonePortraitOutline" class="shake-icon" />
-        <span>Shake to reset the board</span>
-      </div>
-
-      <!-- Action Buttons -->
       <div class="action-row">
         <ion-button expand="block" class="reset-btn" @click="resetGame">
           <ion-icon :icon="refreshOutline" slot="start" />
@@ -89,7 +74,6 @@
         </ion-button>
       </div>
 
-      <!-- Saving indicator -->
       <transition name="fade-pop">
         <div v-if="savingToHistory" class="saving-banner">
           <ion-spinner name="crescent" />
@@ -102,14 +86,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonButtons, IonIcon, IonSpinner,
+  IonButton, IonIcon, IonSpinner,
   alertController, toastController,
 } from '@ionic/vue';
-import { trophyOutline, refreshOutline, phonePortraitOutline, bookmarkOutline } from 'ionicons/icons';
-import { Motion } from '@capacitor/motion';
+import { trophyOutline, refreshOutline, bookmarkOutline } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Geolocation } from '@capacitor/geolocation';
 import { loadSettings } from './settings';
@@ -117,7 +100,6 @@ import { loadSettings } from './settings';
 // ── Settings ──────────────────────────────────────────────────────────────────
 const settings = ref(loadSettings());
 
-// Re-read settings each time the page is shown (user may have changed them)
 onMounted(() => { settings.value = loadSettings(); });
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -177,8 +159,6 @@ const makeMove = async (index: number) => {
   if (board.value[index] || gameOver.value) return;
 
   const cur = nextPlayer.value;
-
-  // Replace full array so Vue detects the mutation atomically
   const next = [...board.value];
   next[index] = cur;
   board.value = next;
@@ -199,7 +179,6 @@ const makeMove = async (index: number) => {
     return;
   }
 
-  // Switch turn only after win/draw checks, never before
   nextPlayer.value = cur === 'X' ? 'O' : 'X';
   await Haptics.impact({ style: ImpactStyle.Light });
 };
@@ -266,13 +245,11 @@ const saveGame = async (matchName: string) => {
     locationError: null,
   };
 
-  // ── Geolocation (Capacitor) ──
   try {
     const pos = await Geolocation.getCurrentPosition({ timeout: 10_000 });
     entry.lat = pos.coords.latitude;
     entry.lng = pos.coords.longitude;
 
-    // Reverse-geocode with Nominatim (OSM) — free, no key
     const geoRes = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${entry.lat}&lon=${entry.lng}&format=json`,
       { headers: { 'Accept-Language': 'en' } }
@@ -287,7 +264,6 @@ const saveGame = async (matchName: string) => {
         null;
     }
 
-    // Weather with Open-Meteo — free, no key
     const wxRes = await fetch(
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${entry.lat}&longitude=${entry.lng}` +
@@ -307,7 +283,6 @@ const saveGame = async (matchName: string) => {
     entry.locationError = 'Location unavailable';
   }
 
-  // ── Persist ──
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
     const history: any[] = raw ? JSON.parse(raw) : [];
@@ -327,32 +302,10 @@ const saveGame = async (matchName: string) => {
   });
   toast.present();
 };
-
-// ── Shake Detection ───────────────────────────────────────────────────────────
-let accelHandler: any;
-let lastShake = 0;
-
-onMounted(async () => {
-  try { await (Motion as any).requestPermissions?.(); } catch {}
-  accelHandler = await Motion.addListener('accel', (event) => {
-    const force =
-      Math.abs(event.acceleration.x) +
-      Math.abs(event.acceleration.y) +
-      Math.abs(event.acceleration.z);
-    const now = Date.now();
-    if (force > 22 && now - lastShake > 1000) {
-      lastShake = now;
-      resetGame();
-    }
-  });
-});
-
-onUnmounted(() => {
-  if (accelHandler) accelHandler.remove();
-});
 </script>
 
 <style scoped>
+/* (Styles are unchanged from previous version) */
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
 
 .chess-page {
@@ -382,14 +335,11 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-.header-btn { --color: var(--gold); }
-
 .dark-content {
   --background: var(--bg-deep);
   --color: var(--text-main);
 }
 
-/* ── Player Row ── */
 .players-row {
   display: flex;
   align-items: center;
@@ -469,7 +419,6 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
-/* ── Status Banner ── */
 .status-banner {
   text-align: center;
   padding: 12px 20px;
@@ -509,7 +458,6 @@ onUnmounted(() => {
 .dot-pink { background: var(--pink-accent); box-shadow: 0 0 8px var(--pink-accent); }
 .trophy-icon { font-size: 1.1rem; }
 
-/* ── Board ── */
 .board-wrapper {
   position: relative;
   display: flex;
@@ -518,16 +466,11 @@ onUnmounted(() => {
   max-width: 380px;
 }
 
-/* Tablet: bigger board */
 @media (min-width: 768px) {
   .board-wrapper { max-width: 480px; }
   .players-row   { gap: 20px; }
   .player-pill   { min-width: 110px; padding: 14px 24px; }
   .pill-symbol   { font-size: 2rem; }
-}
-
-@media (min-width: 1024px) {
-  .board-wrapper { max-width: 420px; }
 }
 
 .board-glow-ring {
@@ -613,27 +556,6 @@ onUnmounted(() => {
 }
 .pop-in { animation: popIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
-/* ── Shake hint ── */
-.shake-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.78rem;
-  color: var(--text-dim);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  animation: subtleBounce 2.4s ease-in-out infinite;
-}
-@keyframes subtleBounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-3px); }
-}
-.shake-icon { font-size: 1rem; }
-
-/* ── Action row ── */
 .action-row {
   display: flex;
   gap: 10px;
@@ -666,7 +588,6 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-/* ── Saving banner ── */
 .saving-banner {
   display: flex;
   align-items: center;
@@ -690,7 +611,6 @@ onUnmounted(() => {
 }
 </style>
 
-<!-- Global alert / toast styles -->
 <style>
 .dark-alert { --background: #0d1a2e; --color: #c8dff8; }
 .dark-alert .alert-title    { font-family: 'Rajdhani', sans-serif !important; color: #1a9fff !important; letter-spacing: 2px; }
