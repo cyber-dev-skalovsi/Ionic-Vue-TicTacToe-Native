@@ -36,20 +36,8 @@
            <p v-if="???">⚠️ {{ ??? }}</p>
            <p v-if="???">🎯 Genauigkeit: {{ ???.toFixed(1) }} m</p>
 
-           ══════════════════════════════════ SOLUTION ══════════════════════════════════ -->
-      <div class="geo-block">
-        <ion-button expand="block" class="geo-btn" @click="printLocation">
-          <ion-icon :icon="navigateOutline" slot="start" />
-          📡 Standort abrufen
-        </ion-button>
-        <div class="geo-result">
-          <p v-if="lat" class="geo-coords">🌍 {{ lat.toFixed(4) }}°, {{ lng?.toFixed(4) }}°</p>
-          <p v-else class="geo-placeholder">⏳ Noch kein Standort …</p>
-          <p v-if="locationError" class="geo-error">⚠️ {{ locationError }}</p>
-          <p v-if="accuracy" class="geo-accuracy">🎯 Genauigkeit: {{ accuracy.toFixed(1) }} m</p>
-        </div>
-      </div>
-      <!-- ══════════════════════════════════════════════════════ -->
+          -->
+
 
       <!-- Empty State -->
       <div v-if="history.length === 0" class="empty-state">
