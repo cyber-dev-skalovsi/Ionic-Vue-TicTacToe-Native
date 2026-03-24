@@ -160,6 +160,7 @@ import {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // AUFGABE 1 – useGeolocation.ts  (Datei: composables/useGeolocation.ts)
+// (Importiere noch "import { Geolocation } from '@capacitor/geolocation';")
 // ───────────────────────────────────────────────────────────────────────────────
 // Erstelle die Datei mit folgendem Grundgerüst und fülle die TODOs aus:
 //
@@ -170,9 +171,10 @@ import {
 //     // TODO: zwei reaktive refs, Typ number | null, Startwert null
 //     const lat = ???
 //     const lng = ???
-//
+//      
 //     // TODO: async-Funktion printLocation()
-//     //   → navigator.geolocation.getCurrentPosition() aufrufen
+//     //   → await Geolocation.requestPermissions();
+//     //   → Geolocation.getCurrentPosition() aufrufen
 //     //   → lat.value / lng.value zuweisen
 //     //   → console.log() mit den Koordinaten ausgeben 🗺️
 //     async function printLocation() {
